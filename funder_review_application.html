@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block title %}Review Application - {{ case.patient_name }}{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,#7851a9,#9d52b1);padding:36px 0;color:#fff;">
+  <div class="container">
+    <a href="{{ url_for('funder_dashboard') }}" style="color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;">← Back to Dashboard</a>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;">💼 Review Funding Application</h1>
+    <p style="opacity:0.85;margin-top:6px;">Case from {{ patient_user.name }}</p>
+  </div>
+</div>
+
+<div class="container-md" style="padding:32px 0;">
+  <div id="alertBox"></div>
+
+  <!-- Application Quick Info -->
+  <div class="card mb-4" style="border:2px solid #7851a9;background:rgba(120,81,169,0.02);">
+    <div class="card-header" style="background:rgba(120,81,169,0.1);">
+      <h3 style="font-weight:800;color:#7851a9;">📋 Case Overview</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Patient Name</div>
+          <div style="font-weight:700;">{{ case.patient_name }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Illness Type</div>
+          <div style="font-weight:700;">{{ case.illness_type }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Requested Amount</div>
+          <div style="font-weight:700;color:#7851a9;font-size:1.2rem;">₹{{ "{:,}".format(case.estimated_cost) }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Urgency Level</div>
+          <div style="font-weight:700;">{% if case.urgency == 1 %}🚨 Critical{% elif case.urgency == 2 %}⚠️ High{% else %}🟡 Medium{% endif %}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Hospital</div>
+          <div style="font-weight:700;">{{ case.hospital_name }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Location</div>
+          <div style="font-weight:700;">{{ case.hospital_location }}</div>
+        </div>
+      </div>
+      {% if case.description %}
+      <div style="margin-top:16px;background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+        <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">📝 Case Description</div>
+        <div>{{ case.description }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Patient Contact & Bank Info -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:#7851a9;">👤 Patient Information</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Name</div>
+          <div style="font-weight:700;">{{ patient_user.name }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Email</div>
+          <div>{{ patient_user.email }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Phone</div>
+          <div>{{ patient_user.phone or 'Not provided' }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Age</div>
+          <div>{{ case.age }} years old</div>
+        </div>
+      </div>
+
+      {% if patient_user.account_holder %}
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid var(--accent);">
+        <div style="font-weight:700;margin-bottom:8px;">💳 Bank Account for Transfer</div>
+        <div style="display:grid;gap:6px;font-size:0.95rem;">
+          <div><span style="color:var(--text-muted);">Name:</span> {{ patient_user.account_holder }}</div>
+          <div><span style="color:var(--text-muted);">Bank:</span> {{ patient_user.bank_name }}</div>
+          <div><span style="color:var(--text-muted);">Account:</span> <span style="font-family:monospace;">{{ patient_user.account_number }}</span></div>
+          <div><span style="color:var(--text-muted);">IFSC:</span> {{ patient_user.ifsc_code }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning" style="margin-top:16px;">
+        ⚠️ Patient has not set bank details. They must update their profile before funds can be transferred.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Verified Documents -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:#7851a9;">📁 Hospital-Verified Documents</h3>
+    </div>
+    <div class="card-body">
+      {% if documents %}
+        <div style="display:grid;gap:8px;">
+          {% for doc in documents %}
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:10px 12px;border-radius:var(--radius-sm);border-left:3px solid {% if doc.verified %}var(--success){% else %}#ffc107{% endif %};">
+            <div>
+              <div style="font-weight:700;">📄 {{ doc.doc_type | replace('_', ' ') | title }}</div>
+              <div style="font-size:0.85rem;color:var(--text-muted);">{{ doc.file_name }}</div>
+              {% if doc.verified %}
+              <div style="font-size:0.85rem;color:var(--success);margin-top:2px;">✅ Verified by hospital</div>
+              {% else %}
+              <div style="font-size:0.85rem;color:#ffc107;margin-top:2px;">⚠️ Awaiting verification</div>
+              {% endif %}
+            </div>
+            <button onclick="viewDocument('{{ doc.id }}')" class="btn" style="background:#007bff;color:white;border:none;cursor:pointer;padding:6px 12px;border-radius:4px;">
+              👁️ View
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+      <div class="alert alert-warning">⚠️ No documents uploaded yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Approval Form -->
+  <div class="card mb-4" style="border:2px solid #28a745;background:rgba(40,167,69,0.02);">
+    <div class="card-header" style="background:rgba(40,167,69,0.1);">
+      <h3 style="font-weight:800;color:#28a745;">✅ Funding Decision</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">Decision *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <button onclick="setDecision('approve')" id="approveBtn" class="btn" style="background:white;border:2px solid #28a745;color:#28a745;padding:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+            ✅ Approve Funding
+          </button>
+          <button onclick="setDecision('reject')" id="rejectBtn" class="btn" style="background:white;border:2px solid #dc3545;color:#dc3545;padding:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+            ❌ Reject Application
+          </button>
+        </div>
+        <input type="hidden" id="decision" value="">
+      </div>
+
+      <!-- Approval Details (show if approve selected) -->
+      <div id="approvalSection" style="display:none;margin-top:20px;padding:16px;background:rgba(40,167,69,0.1);border-radius:4px;">
+        <h4 style="font-weight:700;margin-bottom:12px;">💰 Funding Amount</h4>
+        <div class="form-group">
+          <label class="form-label">Amount to Approve (₹) *</label>
+          <input type="number" id="amount" class="form-control" placeholder="e.g. {{ case.estimated_cost }}" value="{{ case.estimated_cost }}" min="0">
+          <p class="form-hint">You can approve full or partial amount. Maximum: ₹{{ "{:,}".format(case.estimated_cost) }}</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Additional Notes (Optional)</label>
+          <textarea id="approvalNote" class="form-control" rows="3" placeholder="e.g., Approval conditions, payment terms, or comments..."></textarea>
+        </div>
+      </div>
+
+      <!-- Rejection Details (show if reject selected) -->
+      <div id="rejectionSection" style="display:none;margin-top:20px;padding:16px;background:rgba(220,53,69,0.1);border-radius:4px;">
+        <h4 style="font-weight:700;margin-bottom:12px;">Reason for Rejection</h4>
+        <div class="form-group">
+          <label class="form-label">Rejection Reason *</label>
+          <textarea id="rejectionNote" class="form-control" rows="3" placeholder="Please explain why this application is being rejected..." required></textarea>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div style="margin-top:20px;">
+        <button onclick="submitDecision()" class="btn btn-lg" style="background:#7851a9;color:white;border:none;cursor:pointer;width:100%;padding:12px;font-weight:700;border-radius:4px;">
+          📤 Submit Decision
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button onclick="window.history.back()" class="btn btn-outline">← Back to Applications</button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setDecision(decision) {
+  document.getElementById('decision').value = decision;
+  document.getElementById('approveBtn').style.borderColor = decision === 'approve' ? '#28a745' : '#ddd';
+  document.getElementById('approveBtn').style.background = decision === 'approve' ? '#28a745' : 'white';
+  document.getElementById('approveBtn').style.color = decision === 'approve' ? 'white' : '#28a745';
+
+  document.getElementById('rejectBtn').style.borderColor = decision === 'reject' ? '#dc3545' : '#ddd';
+  document.getElementById('rejectBtn').style.background = decision === 'reject' ? '#dc3545' : 'white';
+  document.getElementById('rejectBtn').style.color = decision === 'reject' ? 'white' : '#dc3545';
+
+  document.getElementById('approvalSection').style.display = decision === 'approve' ? 'block' : 'none';
+  document.getElementById('rejectionSection').style.display = decision === 'reject' ? 'block' : 'none';
+}
+
+function viewDocument(docId) {
+  window.location.href = `/download-document/${docId}`;
+}
+
+async function submitDecision() {
+  const decision = document.getElementById('decision').value;
+  if (!decision) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">⚠️ Please select a decision.</div>';
+    return;
+  }
+
+  let payload = {
+    application_id: '{{ application.id }}',
+    action: decision
+  };
+
+  if (decision === 'approve') {
+    const amount = document.getElementById('amount').value;
+    if (!amount) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">⚠️ Please enter funding amount.</div>';
+      return;
+    }
+    payload.amount = amount;
+    payload.note = document.getElementById('approvalNote').value.trim();
+  } else {
+    const reason = document.getElementById('rejectionNote').value.trim();
+    if (!reason) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">⚠️ Please provide rejection reason.</div>';
+      return;
+    }
+    payload.note = reason;
+  }
+
+  try {
+    const res = await fetch('/funder/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      const msg = decision === 'approve' 
+        ? '✅ Application approved! Payment processing initiated.'
+        : '❌ Application rejected.';
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-success">${msg}</div>`;
+      setTimeout(() => window.location.href = '/funder-dashboard', 1500);
+    } else {
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Error: ${result.message}</div>`;
+    }
+  } catch (e) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">An error occurred.</div>';
+  }
+}
+</script>
+{% endblock %}

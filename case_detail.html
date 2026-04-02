@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Case Details - {{ case.patient_name }}{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:36px 0;color:#fff;">
+  <div class="container">
+    <a href="{{ url_for('dashboard') }}" style="color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;">← Back to Dashboard</a>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;">📋 Case Details</h1>
+    <p style="opacity:0.85;margin-top:6px;">{{ case.patient_name }} • {{ case.illness_type }}</p>
+  </div>
+</div>
+
+<div class="container-md" style="padding:32px 0;">
+  <div id="alertBox"></div>
+
+  <!-- Case Status Timeline -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">📊 Case Status Pipeline</h3>
+    </div>
+    <div class="card-body">
+      <div class="timeline" style="display:grid;gap:12px;">
+        {% set statuses = ['submitted', 'documents_pending', 'verified', 'approved_for_funding', 'funded'] %}
+        {% for status in statuses %}
+          {% set status_names = {
+            'submitted': '📤 Case Submitted',
+            'documents_pending': '📁 Documents Pending',
+            'verified': '✅ Hospital Verified',
+            'approved_for_funding': '✔️ Funder Approved',
+            'funded': '🎉 Funding Received'
+          } %}
+          <div style="display:flex;gap:12px;align-items:center;padding:12px;background:{% if case.status == status %}var(--accent-light){% elif statuses.index(status) < statuses.index(case.status) %}rgba(var(--success-rgb),0.1){% else %}var(--bg){% endif %};border-radius:var(--radius-sm);border-left:3px solid {% if case.status == status %}var(--accent){% elif statuses.index(status) < statuses.index(case.status) %}var(--success){% else %}var(--border){% endif %};">
+            <div style="font-size:1.5rem;">
+              {% if case.status == status %}⏳{% elif statuses.index(status) < statuses.index(case.status) %}✅{% else %}⭕{% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;">{{ status_names.get(status, status) }}</div>
+              {% if case.status == status %}<div style="font-size:0.85rem;color:var(--text-muted);">Currently here</div>{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Case Information -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">👤 Patient & Case Information</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Patient Name</div>
+          <div style="font-weight:700;">{{ case.patient_name }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Age / Gender</div>
+          <div style="font-weight:700;">{{ case.age }} years / {{ case.gender }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Illness Type</div>
+          <div style="font-weight:700;">{{ case.illness_type }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Hospital</div>
+          <div style="font-weight:700;">{{ case.hospital_name }}, {{ case.hospital_location }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Estimated Cost</div>
+          <div style="font-weight:700;color:var(--accent);">₹{{ "{:,}".format(case.estimated_cost) }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Urgency</div>
+          <div style="font-weight:700;">{% if case.urgency == 1 %}🚨 Critical{% elif case.urgency == 2 %}⚠️ High{% else %}🟡 Medium{% endif %}</div>
+        </div>
+      </div>
+      {% if case.description %}
+      <div style="margin-top:16px;background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+        <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">📝 Description</div>
+        <div>{{ case.description }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Document Upload Section -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">📁 Required Documents</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Upload documents for hospital verification. These will be reviewed before applying for funding.</p>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-info">
+        💡 Documents like Aadhar Card will be visible to funders when reviewing your application.
+      </div>
+
+      <!-- Current Documents -->
+      {% if documents %}
+      <div style="margin-bottom:20px;">
+        <h4 style="font-weight:700;margin-bottom:12px;">✅ Uploaded Documents</h4>
+        <div style="display:grid;gap:8px;">
+          {% for doc in documents %}
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);border-left:3px solid {% if doc.verified %}var(--success){% else %}var(--primary){% endif %};">
+            <div>
+              <div style="font-weight:700;font-size:0.95rem;">
+                📄 {% for dt_key, dt_name in document_types %}{% if dt_key == doc.doc_type %}{{ dt_name }}{% endif %}{% endfor %}
+              </div>
+              <div style="font-size:0.85rem;color:var(--text-muted);">{{ doc.file_name }}</div>
+              {% if doc.verified %}
+              <div style="font-size:0.85rem;color:var(--success);margin-top:2px;">✅ Verified by hospital {{ doc.verified_at }}</div>
+              {% else %}
+              <div style="font-size:0.85rem;color:var(--primary);margin-top:2px;">⏳ Pending hospital verification</div>
+              {% endif %}
+              {% if doc.rejection_reason %}
+              <div style="font-size:0.85rem;color:var(--danger);margin-top:2px;">❌ Reason: {{ doc.rejection_reason }}</div>
+              {% endif %}
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="downloadDocument('{{ doc.id }}')" class="btn btn-sm" style="background:var(--primary);color:white;border:none;cursor:pointer;padding:6px 12px;">↓ Download</button>
+              <button onclick="deleteDocument('{{ doc.id }}')" class="btn btn-sm" style="background:#dc3545;color:white;border:none;cursor:pointer;padding:6px 12px;">🗑 Delete</button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Upload Form -->
+      <h4 style="font-weight:700;margin-bottom:12px;">➕ Upload New Document</h4>
+      <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);border:2px dashed var(--border);">
+        <div class="form-group">
+          <label class="form-label">Document Type *</label>
+          <select id="doc_type" class="form-control" required>
+            <option value="">Select document type</option>
+            {% for doc_key, doc_name in document_types %}
+            <option value="{{ doc_key }}">{{ doc_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Upload File (PDF, JPG, PNG) *</label>
+          <input type="file" id="doc_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+          <p class="form-hint">Max size: 10MB. Supported: PDF, JPG, PNG</p>
+        </div>
+
+        <button onclick="uploadDocument()" class="btn btn-accent" id="uploadBtn">
+          📤 Upload Document
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funding Applications -->
+  {% if applications %}
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">🎯 Funding Applications</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;gap:12px;">
+        {% for app in applications %}
+        <div style="background:var(--bg);padding:14px;border-radius:var(--radius-sm);border-left:3px solid {% if app.status == 'approved' %}var(--success){% elif app.status == 'rejected' %}#dc3545{% else %}var(--primary){% endif %};">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div style="flex:1;">
+              <div style="font-weight:700;margin-bottom:4px;">{{ app.org_name }}</div>
+              <div style="font-size:0.9rem;color:var(--text-muted);">Status: <span style="font-weight:700;">{% if app.status == 'approved' %}✅ Approved{% elif app.status == 'rejected' %}❌ Rejected{% else %}⏳ Pending{% endif %}</span></div>
+              {% if app.amount_offered %}
+              <div style="font-size:0.9rem;color:var(--accent);margin-top:4px;">Offered: ₹{{ "{:,}".format(app.amount_offered) }}</div>
+              {% endif %}
+              {% if app.note %}
+              <div style="font-size:0.85rem;background:rgba(0,0,0,0.03);padding:8px;border-radius:4px;margin-top:8px;">{{ app.note }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Payment Information -->
+  {% if payment %}
+  <div class="card mb-4" style="border: 2px solid var(--success); background: rgba(var(--success-rgb), 0.02);">
+    <div class="card-header" style="background: rgba(var(--success-rgb), 0.1);">
+      <h3 style="font-weight:800;color:var(--success);">💰 Payment Information</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Total Amount</div>
+          <div style="font-weight:700;font-size:1.2rem;color:var(--success);">₹{{ "{:,}".format(payment.total_amount) }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Status</div>
+          <div style="font-weight:700;">
+            {% if payment.status == 'completed' %}
+            ✅ Released
+            {% elif payment.status == 'processing' %}
+            ⏳ Processing
+            {% else %}
+            ⭕ Pending
+            {% endif %}
+          </div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Account Holder</div>
+          <div style="font-weight:700;">{{ payment.account_holder }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">Transaction ID</div>
+          <div style="font-weight:700;font-family:monospace;">{{ payment.transaction_id }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Action Buttons -->
+  <div style="display:flex;gap:12px;">
+    <button onclick="window.location.href='/dashboard'" class="btn btn-outline">← Back to Dashboard</button>
+    {% if case.status == 'verified' %}
+    <button onclick="window.location.href='/funding-options/{{ case.id }}'" class="btn btn-accent">🎯 Apply for Funding</button>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function uploadDocument() {
+  const docType = document.getElementById('doc_type').value;
+  const docFile = document.getElementById('doc_file').files[0];
+  const btn = document.getElementById('uploadBtn');
+
+  if (!docType || !docFile) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">Please select document type and file.</div>';
+    return;
+  }
+
+  if (docFile.size > 10 * 1024 * 1024) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">File size exceeds 10MB limit.</div>';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('case_id', '{{ case.id }}');
+  formData.append('doc_type', docType);
+  formData.append('file', docFile);
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Uploading...';
+
+  try {
+    const res = await fetch('/upload-document', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">✅ Document uploaded! Waiting for hospital verification.</div>';
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ ${result.message}</div>`;
+    }
+  } catch (e) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">❌ Upload failed.</div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '📤 Upload Document';
+}
+
+function downloadDocument(docId) {
+  window.location.href = `/download-document/${docId}`;
+}
+
+async function deleteDocument(docId) {
+  if (!confirm('Delete this document? Hospital will need to verify documents again.')) return;
+  // Implementation for delete would go here
+  alert('Delete functionality to be implemented');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}CareFor Now - Healthcare Funding Platform{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:80px 0;color:#fff;text-align:center;">
+  <div class="container">
+    <h1 style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:800;margin-bottom:16px;">CareFor Now</h1>
+    <p style="font-size:1.3rem;opacity:0.9;margin-bottom:32px;">Get Emergency Medical Funding in Minutes</p>
+    <p style="font-size:1.1rem;opacity:0.85;max-width:600px;margin:0 auto 32px;">Connect with verified funding sources to cover emergency medical treatment. Submit your case, get verified by hospitals, and receive funding directly to your bank account.</p>
+    
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <a href="{{ url_for('register') }}" class="btn" style="background:#fff;color:var(--primary);padding:14px 32px;font-weight:700;text-decoration:none;border-radius:8px;font-size:1.1rem;">
+        Get Started →
+      </a>
+      <a href="{{ url_for('login') }}" class="btn" style="background:transparent;color:#fff;border:2px solid #fff;padding:12px 32px;font-weight:700;text-decoration:none;border-radius:8px;font-size:1.1rem;">
+        Login →
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding:64px 0;">
+  <h2 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:48px;color:var(--primary-dark);">How It Works</h2>
+  
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:32px;margin-bottom:64px;">
+    <!-- Step 1 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">1️⃣</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Register & Setup</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Create an account and add your bank details. You'll receive funds directly to your bank account.</p>
+    </div>
+    
+    <!-- Step 2 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">2️⃣</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Create Case</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Submit your emergency medical case with patient details, hospital information, and estimated cost.</p>
+    </div>
+    
+    <!-- Step 3 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">📁</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Upload Documents</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Upload Aadhar, hospital letter, cost estimate, and other required documents.</p>
+    </div>
+    
+    <!-- Step 4 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Hospital Verifies</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Hospital staff verifies your documents. Your case then goes to funders.</p>
+    </div>
+    
+    <!-- Step 5 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">💼</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Get Approved</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Funders review your case and approve funding. Payment happens within days.</p>
+    </div>
+    
+    <!-- Step 6 -->
+    <div style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Receive Funds</h3>
+      <p style="color:var(--text-muted);line-height:1.6;">Funds are transferred directly to your bank account. You get the money you need!</p>
+    </div>
+  </div>
+</div>
+
+<!-- Features Section -->
+<div style="background:var(--bg);padding:64px 0;">
+  <div class="container">
+    <h2 style="text-align:center;font-size:2rem;font-weight:800;margin-bottom:48px;color:var(--primary-dark);">Why Choose CareFor Now?</h2>
+    
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">⚡</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Fast Processing</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Get funding approval within 2-3 days. No lengthy paperwork or delays.</p>
+      </div>
+      
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🏥</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Verified Partners</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Access to verified NGOs, CSR funds, insurance, and government schemes.</p>
+      </div>
+      
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">💰</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Direct Bank Transfer</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Funds go directly to your bank account. No intermediaries, no delays.</p>
+      </div>
+      
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Secure & Private</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Your personal and medical information is encrypted and secure.</p>
+      </div>
+      
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">📱</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Easy to Use</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Simple, step-by-step process anyone can follow. No technical knowledge needed.</p>
+      </div>
+      
+      <div style="background:white;padding:24px;border-radius:8px;border:0.5px solid var(--border);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🎯</div>
+        <h3 style="font-weight:700;margin-bottom:8px;">Smart Matching</h3>
+        <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">Automatically matched with funders best suited for your case.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA Section -->
+<div style="background:linear-gradient(135deg,var(--accent),var(--accent-dark));padding:64px 0;color:#fff;text-align:center;">
+  <div class="container">
+    <h2 style="font-size:2rem;font-weight:800;margin-bottom:16px;">Need Emergency Medical Funding?</h2>
+    <p style="font-size:1.1rem;opacity:0.9;margin-bottom:32px;">Join thousands who got funded through CareFor Now. Start your journey in seconds.</p>
+    
+    <a href="{{ url_for('register') }}" class="btn" style="background:#fff;color:var(--accent);padding:14px 40px;font-weight:700;text-decoration:none;border-radius:8px;font-size:1.1rem;display:inline-block;">
+      Get Started Now →
+    </a>
+  </div>
+</div>
+
+<!-- Stats Section -->
+<div class="container" style="padding:48px 0;text-align:center;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;">
+    <div>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary);">10,000+</div>
+      <div style="color:var(--text-muted);font-size:0.95rem;">Patients Funded</div>
+    </div>
+    <div>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary);">₹50 Cr+</div>
+      <div style="color:var(--text-muted);font-size:0.95rem;">Total Funding Disbursed</div>
+    </div>
+    <div>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary);">2-3 Days</div>
+      <div style="color:var(--text-muted);font-size:0.95rem;">Average Approval Time</div>
+    </div>
+    <div>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary);">50+</div>
+      <div style="color:var(--text-muted);font-size:0.95rem;">Partner Funding Sources</div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="background:var(--bg);border-top:0.5px solid var(--border);padding:32px 0;text-align:center;color:var(--text-muted);font-size:0.9rem;">
+  <div class="container">
+    <p style="margin:0;">© 2024 CareFor Now. Helping families in medical emergencies. | <a href="#" style="color:var(--primary);text-decoration:none;">Privacy</a> | <a href="#" style="color:var(--primary);text-decoration:none;">Terms</a></p>
+  </div>
+</div>
+{% endblock %}

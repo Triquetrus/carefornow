@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title %}Hospital Review - {{ case.patient_name }}{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,#1e5a96,#2c7cba);padding:36px 0;color:#fff;">
+  <div class="container">
+    <a href="{{ url_for('hospital_dashboard') }}" style="color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;">← Back to Dashboard</a>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;">🏥 Document Verification</h1>
+    <p style="opacity:0.85;margin-top:6px;">Review and verify patient documents</p>
+  </div>
+</div>
+
+<div class="container-md" style="padding:32px 0;">
+  <div id="alertBox"></div>
+
+  <!-- Patient Information (Quick View) -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:#1e5a96;">👤 Patient Information</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Patient Name</div>
+          <div style="font-weight:700;font-size:1.1rem;">{{ case.patient_name }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Age / Gender</div>
+          <div style="font-weight:700;">{{ case.age }} years / {{ case.gender }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Illness Type</div>
+          <div style="font-weight:700;">{{ case.illness_type }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Hospital</div>
+          <div style="font-weight:700;">{{ case.hospital_name }}, {{ case.hospital_location }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Estimated Cost</div>
+          <div style="font-weight:700;color:var(--accent);">₹{{ "{:,}".format(case.estimated_cost) }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Urgency</div>
+          <div style="font-weight:700;">{% if case.urgency == 1 %}🚨 Critical{% elif case.urgency == 2 %}⚠️ High{% else %}🟡 Medium{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Family Contact Information -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:#1e5a96;">📞 Family Contact Information</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;gap:12px;">
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Contact Name</div>
+          <div style="font-weight:700;">{{ patient_user.name }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Email</div>
+          <div>{{ patient_user.email }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Phone</div>
+          <div>{{ patient_user.phone or 'Not provided' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents for Verification -->
+  <div class="card mb-4" style="border:2px solid #1e5a96;background:rgba(30,90,150,0.02);">
+    <div class="card-header" style="background:rgba(30,90,150,0.1);">
+      <h3 style="font-weight:800;color:#1e5a96;">📁 Documents to Verify</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Review each document and mark as verified or request resubmission</p>
+    </div>
+    <div class="card-body">
+      {% if documents %}
+        {% for doc in documents %}
+        <div style="margin-bottom:20px;padding:14px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid {% if doc.verified %}#28a745{% elif doc.rejection_reason %}#dc3545{% else %}#007bff{% endif %};">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+            <div style="flex:1;">
+              <div style="font-weight:700;margin-bottom:4px;font-size:1.1rem;">
+                📄 {{ doc.doc_type | replace('_', ' ') | title }}
+              </div>
+              <div style="font-size:0.9rem;color:var(--text-muted);">{{ doc.file_name }}</div>
+              <div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">Uploaded: {{ doc.created_at }}</div>
+            </div>
+            <button onclick="viewDocument('{{ doc.id }}')" class="btn" style="background:#007bff;color:white;border:none;cursor:pointer;padding:8px 16px;border-radius:4px;">
+              👁️ View
+            </button>
+          </div>
+
+          <!-- Status -->
+          {% if doc.verified %}
+          <div style="background:rgba(40,167,69,0.1);padding:10px;border-radius:4px;margin-bottom:12px;color:#28a745;">
+            ✅ VERIFIED
+          </div>
+          {% elif doc.rejection_reason %}
+          <div style="background:rgba(220,53,69,0.1);padding:10px;border-radius:4px;margin-bottom:12px;color:#dc3545;">
+            ❌ REJECTED - {{ doc.rejection_reason }}
+          </div>
+          {% else %}
+          <div style="background:rgba(0,123,255,0.1);padding:10px;border-radius:4px;margin-bottom:12px;color:#007bff;">
+            ⏳ PENDING REVIEW
+          </div>
+          {% endif %}
+
+          <!-- Action Buttons (if not verified) -->
+          {% if not doc.verified %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button onclick="verifyDocument('{{ doc.id }}', '{{ case.id }}')" class="btn" style="background:#28a745;color:white;border:none;cursor:pointer;padding:8px 12px;border-radius:4px;font-weight:700;">
+              ✅ Verify Document
+            </button>
+            <button onclick="openRejectDialog('{{ doc.id }}')" class="btn" style="background:#dc3545;color:white;border:none;cursor:pointer;padding:8px 12px;border-radius:4px;font-weight:700;">
+              ❌ Request Changes
+            </button>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="alert alert-warning">
+        ⚠️ No documents uploaded yet. Patient needs to upload documents first.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary Section -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:#1e5a96;">📊 Verification Summary</h3>
+    </div>
+    <div class="card-body">
+      {% set verified_count = documents | selectattr('verified') | list | length %}
+      {% set total_count = documents | length %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Documents Verified</div>
+          <div style="font-weight:700;font-size:1.5rem;">{{ verified_count }} / {{ total_count }}</div>
+        </div>
+        <div style="background:var(--bg);padding:12px 14px;border-radius:var(--radius-sm);">
+          <div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Current Status</div>
+          <div style="font-weight:700;font-size:1rem;">{{ case.status | replace('_', ' ') | title }}</div>
+        </div>
+      </div>
+
+      {% if verified_count == total_count and total_count > 0 %}
+      <div class="alert alert-success">
+        ✅ All documents are verified! You can now approve this case to send it to funders.
+      </div>
+      <button onclick="approveCase('{{ case.id }}')" class="btn" style="background:#28a745;color:white;border:none;cursor:pointer;padding:10px 20px;border-radius:4px;font-weight:700;width:100%;">
+        ✅ Approve Case & Send to Funders
+      </button>
+      {% else %}
+      <div class="alert alert-info">
+        💡 All documents must be verified before this case can be sent to funders.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <button onclick="window.history.back()" class="btn btn-outline">← Back</button>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;padding:24px;border-radius:8px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+    <h3 style="font-weight:800;margin-bottom:16px;">Request Changes</h3>
+    <textarea id="rejectReason" class="form-control" rows="4" placeholder="Why should this document be resubmitted?"></textarea>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="closeRejectDialog()" class="btn btn-outline">Cancel</button>
+      <button onclick="rejectDocument()" class="btn" style="background:#dc3545;color:white;border:none;cursor:pointer;flex:1;">Send Request</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentDocToReject = null;
+
+function viewDocument(docId) {
+  window.location.href = `/download-document/${docId}`;
+}
+
+async function verifyDocument(docId, caseId) {
+  if (!confirm('Mark this document as verified?')) return;
+
+  try {
+    const res = await fetch('/hospital/verify-documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        case_id: caseId,
+        doc_id: docId,
+        action: 'approve'
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">✅ Document verified!</div>';
+      setTimeout(() => location.reload(), 1000);
+    }
+  } catch (e) {
+    alert('Error verifying document');
+  }
+}
+
+function openRejectDialog(docId) {
+  currentDocToReject = docId;
+  document.getElementById('rejectModal').style.display = 'flex';
+}
+
+function closeRejectDialog() {
+  document.getElementById('rejectModal').style.display = 'none';
+  currentDocToReject = null;
+}
+
+async function rejectDocument() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  if (!reason) {
+    alert('Please provide a reason');
+    return;
+  }
+
+  try {
+    const res = await fetch('/hospital/verify-documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        case_id: '{{ case.id }}',
+        doc_id: currentDocToReject,
+        action: 'reject',
+        reason: reason
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      closeRejectDialog();
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">✅ Rejection request sent!</div>';
+      setTimeout(() => location.reload(), 1000);
+    }
+  } catch (e) {
+    alert('Error rejecting document');
+  }
+}
+
+async function approveCase(caseId) {
+  if (!confirm('Approve this case? It will be sent to funders immediately.')) return;
+
+  try {
+    const res = await fetch('/hospital/verify-documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        case_id: caseId,
+        action: 'case_approve'
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">✅ Case approved! Funders will review it now.</div>';
+      setTimeout(() => window.location.href = '/hospital-dashboard', 1500);
+    }
+  } catch (e) {
+    alert('Error approving case');
+  }
+}
+
+// Close modal on outside click
+document.getElementById('rejectModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeRejectDialog();
+});
+</script>
+{% endblock %}

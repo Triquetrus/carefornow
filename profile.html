@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:36px 0;color:#fff;">
+  <div class="container">
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;">👤 My Profile</h1>
+    <p style="opacity:0.85;margin-top:6px;">Update your personal and bank details for fund transfers</p>
+  </div>
+</div>
+
+<div class="container-md" style="padding:32px 0;">
+  <div id="alertBox"></div>
+
+  <!-- Personal Information -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">📋 Personal Information</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="name" class="form-control" value="{{ user.name or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" value="{{ user.email }}" disabled>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" id="phone" class="form-control" value="{{ user.phone or '' }}">
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank Details (Critical for Fund Transfer) -->
+  <div class="card mb-4" style="border: 2px solid var(--accent); background: rgba(var(--accent-rgb), 0.02);">
+    <div class="card-header" style="background: rgba(var(--accent-rgb), 0.1);">
+      <h3 style="font-weight:800;color:var(--accent);">🏦 Bank Details (For Fund Transfer)</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Required to receive funding. Keep this updated.</p>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-info">
+        💡 Once you apply for funding and get approved, the approved amount will be transferred to this account.
+      </div>
+
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">Account Holder Name *</label>
+          <input type="text" id="account_holder" class="form-control" placeholder="Full name (must match bank records)" value="{{ user.account_holder or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bank Name *</label>
+          <input type="text" id="bank_name" class="form-control" placeholder="e.g. HDFC Bank, SBI" value="{{ user.bank_name or '' }}">
+        </div>
+      </div>
+
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">Account Number *</label>
+          <input type="text" id="account_number" class="form-control" placeholder="e.g. 1234567890123456" value="{{ user.account_number or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">IFSC Code *</label>
+          <input type="text" id="ifsc_code" class="form-control" placeholder="e.g. HDFC0001234" value="{{ user.ifsc_code or '' }}">
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        ⚠️ Bank details are sensitive information. They are encrypted and used only for fund transfers.
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div style="display:flex;gap:12px;justify-content:flex-end;">
+    <button onclick="window.history.back()" class="btn btn-outline">Cancel</button>
+    <button onclick="saveProfile()" class="btn btn-accent btn-lg" id="saveBtn">
+      💾 Save Changes
+    </button>
+  </div>
+</div>
+
+<style>
+.form-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-row-2 {
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 768px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveProfile() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Saving...';
+
+  const data = {
+    name: document.getElementById('name').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    bank_name: document.getElementById('bank_name').value.trim(),
+    account_number: document.getElementById('account_number').value.trim(),
+    ifsc_code: document.getElementById('ifsc_code').value.trim(),
+    account_holder: document.getElementById('account_holder').value.trim()
+  };
+
+  // Validate bank details if any provided
+  if (data.bank_name || data.account_number || data.ifsc_code) {
+    if (!data.bank_name || !data.account_number || !data.ifsc_code || !data.account_holder) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">⚠️ All bank details are required together.</div>';
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save Changes';
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch('/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">✅ Profile updated successfully!</div>';
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1500);
+    } else {
+      document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">❌ ${result.message}</div>`;
+    }
+  } catch (e) {
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-danger">❌ An error occurred.</div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '💾 Save Changes';
+}
+</script>
+{% endblock %}

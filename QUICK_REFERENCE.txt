@@ -1,0 +1,355 @@
+# 🚀 QUICK REFERENCE CARD
+## CareFor Now - Setup & GitHub in 10 Minutes
+
+---
+
+## 🏃 RUN LOCALLY (5 MINUTES)
+
+```bash
+# 1. Setup
+cd carefor-now
+python3 -m venv venv
+source venv/bin/activate          # macOS/Linux
+# or: venv\Scripts\activate       # Windows
+pip install -r requirements.txt
+
+# 2. Configure
+cp .env.example .env
+# Edit .env with your database URL
+
+# 3. Database
+python3 << 'EOF'
+from app import app, db
+with app.app_context():
+    db.create_all()
+    print("✅ Database ready!")
+EOF
+
+# 4. Run
+python app.py
+
+# 5. Test
+# Open 4 browser windows: http://localhost:5000
+# Follow testing guide in QUICK_START.md
+```
+
+---
+
+## 📤 PUSH TO GITHUB (5 MINUTES)
+
+```bash
+# 1. Create repository on GitHub.com
+
+# 2. Initialize Git
+git init
+git add .
+git commit -m "Initial commit: Healthcare funding platform"
+
+# 3. Connect to GitHub
+git remote add origin https://github.com/YOUR-USERNAME/carefor-now.git
+git branch -M main
+git push -u origin main
+
+# 4. Done! ✅
+```
+
+---
+
+## 🚀 DEPLOY (Choose One)
+
+### Heroku (Easiest - Free tier available)
+```bash
+heroku create carefor-now
+heroku addons:create heroku-postgresql:hobby-dev
+heroku config:set SECRET_KEY=$(openssl rand -hex 32)
+git push heroku main
+heroku run python3 << 'EOF'
+from app import app, db
+with app.app_context():
+    db.create_all()
+EOF
+heroku open
+```
+
+### DigitalOcean ($5/month)
+```bash
+# 1. Create Ubuntu 20.04 droplet
+# 2. SSH into droplet
+# 3. Follow SETUP_AND_GITHUB.md → DigitalOcean section
+```
+
+### AWS (More complex)
+```bash
+# Follow SETUP_AND_GITHUB.md → AWS section
+```
+
+---
+
+## 📁 FILE STRUCTURE
+
+```
+carefor-now/
+├── app.py (MAIN APPLICATION)
+├── requirements.txt
+├── .env (SECRET - Don't commit)
+├── .gitignore (Ignore .env, venv/, uploads/)
+├── templates/
+│   ├── profile.html
+│   ├── case_detail.html
+│   ├── hospital_case_detail.html
+│   ├── funder_review_application.html
+│   ├── track_status.html
+│   ├── my_funding.html
+│   └── ... (other templates)
+├── static/
+│   ├── css/
+│   └── js/
+├── uploads/ (Created at runtime)
+├── venv/ (Created at runtime - Don't commit)
+├── README.md
+├── SETUP_AND_GITHUB.md
+├── QUICK_START.md
+├── IMPLEMENTATION_GUIDE.md
+└── ARCHITECTURE.md
+```
+
+---
+
+## ✅ CHECKLIST
+
+### Before First Run
+- [ ] Python 3.8+ installed
+- [ ] Virtual environment created
+- [ ] Dependencies installed (`pip install -r requirements.txt`)
+- [ ] .env file created with database URL
+- [ ] Database initialized (`db.create_all()`)
+
+### Before Pushing to GitHub
+- [ ] All files added (`git add .`)
+- [ ] Commit message meaningful (`git commit -m "..."`)
+- [ ] Repository created on GitHub.com
+- [ ] Remote added (`git remote add origin ...`)
+- [ ] .gitignore created (excludes .env, venv/, uploads/)
+
+### Before Deploying
+- [ ] App works locally
+- [ ] All tests pass
+- [ ] Environment variables set
+- [ ] Database migrations done
+- [ ] Static files collected (if needed)
+
+### After Deployment
+- [ ] App accessible at deployed URL
+- [ ] Database connected
+- [ ] File uploads working
+- [ ] Complete pipeline tested
+- [ ] Error monitoring configured
+
+---
+
+## 🔐 IMPORTANT: Environment Variables
+
+**NEVER commit .env file to GitHub!**
+
+```bash
+# .env should contain:
+DATABASE_URL=postgresql://user:pass@localhost/carefor_now
+FLASK_ENV=production
+SECRET_KEY=super-secret-key-here
+UPLOAD_FOLDER=uploads
+MAX_CONTENT_LENGTH=52428800
+
+# Add to .gitignore:
+.env
+*.env
+.env.*
+```
+
+**On Deployment:**
+```bash
+# Heroku
+heroku config:set DATABASE_URL=postgresql://...
+heroku config:set SECRET_KEY=your-key
+
+# DigitalOcean (edit .env on server)
+ssh root@your-ip
+nano /path/to/app/.env
+```
+
+---
+
+## 🧪 QUICK TEST
+
+**Window 1 - Patient:**
+```
+1. Register: patient@test.com (family)
+2. /profile → Set bank details
+3. /new-case → Create case
+4. /case/{id} → Upload documents
+5. /my-funding → See payments
+```
+
+**Window 2 - Hospital:**
+```
+1. Register: hospital@test.com (hospital)
+2. /hospital-dashboard → Review
+3. Verify documents
+4. Case becomes "verified"
+```
+
+**Window 3 - Funder:**
+```
+1. Register: funder@test.com (funder)
+2. /funder-dashboard → Review
+3. Approve with amount
+4. Payment record created
+```
+
+**Window 4 - Admin:**
+```
+1. Register: admin@test.com (admin)
+2. /admin-dashboard → Release payment
+3. Case becomes "funded" ✅
+```
+
+---
+
+## 📊 DATABASE SETUP
+
+### PostgreSQL
+```bash
+# Create database
+createdb carefor_now
+
+# Create user
+createuser carefor_user -P
+
+# Grant permissions
+psql
+GRANT ALL PRIVILEGES ON DATABASE carefor_now TO carefor_user;
+\q
+
+# Connection string for .env:
+DATABASE_URL=postgresql://carefor_user:password@localhost/carefor_now
+```
+
+### SQLite (Local Dev Only)
+```bash
+# Just set in .env:
+DATABASE_URL=sqlite:///carefor_now.db
+
+# Database file created automatically
+```
+
+---
+
+## 🐛 TROUBLESHOOTING
+
+**Q: "Module not found: flask"**
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Q: "Database error"**
+```bash
+python3 << 'EOF'
+from app import app, db
+with app.app_context():
+    db.create_all()
+EOF
+```
+
+**Q: "Port 5000 already in use"**
+```bash
+python app.py -p 8000
+# Or kill the process
+lsof -i :5000
+kill -9 <PID>
+```
+
+**Q: "Permission denied pushing to GitHub"**
+```bash
+# Use SSH key instead of HTTPS
+git remote set-url origin git@github.com:YOUR-USERNAME/carefor-now.git
+git push
+```
+
+**Q: ".env not being ignored"**
+```bash
+git rm --cached .env
+echo ".env" >> .gitignore
+git commit -m "Remove .env from tracking"
+git push
+```
+
+---
+
+## 📚 DOCUMENTATION READING ORDER
+
+1. **START_HERE.txt** ← You are here
+2. **QUICK_START.md** ← Setup & testing
+3. **SETUP_AND_GITHUB.md** ← This file (detailed version)
+4. **ARCHITECTURE.md** ← System design
+5. **IMPLEMENTATION_GUIDE.md** ← Technical details
+
+---
+
+## 🔗 USEFUL LINKS
+
+- **Flask Docs**: https://flask.palletsprojects.com/
+- **SQLAlchemy**: https://docs.sqlalchemy.org/
+- **Heroku Deploy**: https://devcenter.heroku.com/
+- **DigitalOcean**: https://www.digitalocean.com/docs/
+- **GitHub**: https://docs.github.com/
+
+---
+
+## 🎯 SUCCESS METRICS
+
+✅ You've succeeded when:
+
+1. **Local**
+   - Server runs: `python app.py`
+   - Database created with 5 tables
+   - All routes accessible on localhost:5000
+   - Complete pipeline tested with 4 browser windows
+
+2. **GitHub**
+   - Repository exists and is public
+   - All files pushed
+   - README with setup instructions
+   - No .env in repository
+
+3. **Deployed**
+   - App accessible at deployment URL
+   - Database connected
+   - File uploads working
+   - Complete pipeline tested on production
+
+---
+
+## 💡 PRO TIPS
+
+- Use **incognito windows** for testing different roles simultaneously
+- **Auto-refresh** works every 30 seconds on tracking page
+- **Funders can approve partial amounts** (e.g., ask ₹500K, approve ₹400K)
+- **Documents can be resubmitted** if hospital rejects them
+- **Payment only releases** if patient has bank details set
+
+---
+
+## 🚀 NEXT STEPS
+
+1. Read **QUICK_START.md** (5-min setup guide)
+2. Run `python app.py`
+3. Test with 4 browser windows
+4. Push to GitHub
+5. Deploy to Heroku/DigitalOcean
+6. Monitor and improve!
+
+---
+
+**You've got this! 🎉**
+
+Any questions? Check the full documentation files or GitHub Issues.

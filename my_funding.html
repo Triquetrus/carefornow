@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}My Funding Dashboard{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:36px 0;color:#fff;">
+  <div class="container">
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;">💰 My Funding Dashboard</h1>
+    <p style="opacity:0.85;margin-top:6px;">Track all your funding cases and payments</p>
+  </div>
+</div>
+
+<div class="container-md" style="padding:32px 0;">
+
+  <!-- Summary Cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:16px;margin-bottom:32px;">
+    <div style="background:white;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid var(--primary);">
+      <div style="color:var(--text-muted);font-size:0.9rem;font-weight:700;margin-bottom:8px;">Total Cases</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--primary);">{{ user_cases | length }}</div>
+    </div>
+    <div style="background:white;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid var(--accent);">
+      <div style="color:var(--text-muted);font-size:0.9rem;font-weight:700;margin-bottom:8px;">Funded Cases</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--accent);">{{ user_cases | selectattr('status', 'equalto', 'funded') | list | length }}</div>
+    </div>
+    <div style="background:white;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid var(--success);">
+      <div style="color:var(--text-muted);font-size:0.9rem;font-weight:700;margin-bottom:8px;">Total Received</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--success);">₹{{ "{:,}".format(payments | selectattr('status', 'equalto', 'completed') | map(attribute='released_amount') | sum) }}</div>
+    </div>
+    <div style="background:white;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #ffc107;">
+      <div style="color:var(--text-muted);font-size:0.9rem;font-weight:700;margin-bottom:8px;">In Progress</div>
+      <div style="font-size:2rem;font-weight:800;color:#ffc107;">{{ payments | selectattr('status', 'equalto', 'processing') | list | length }}</div>
+    </div>
+  </div>
+
+  <!-- My Cases Section -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 style="font-weight:800;color:var(--primary-dark);">📋 My Cases</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">All your funding cases and their status</p>
+    </div>
+    <div class="card-body">
+      {% if user_cases %}
+        <div style="display:grid;gap:12px;">
+          {% for case in user_cases %}
+          <div onclick="window.location.href='/case/{{ case.id }}'" style="background:var(--bg);padding:14px;border-radius:var(--radius-sm);cursor:pointer;border-left:4px solid {% if case.status == 'funded' %}var(--success){% elif case.status == 'approved_for_funding' %}var(--accent){% elif case.status == 'verified' %}var(--primary){% else %}var(--border){% endif %};transition:all 0.3s;hover {box-shadow: 0 2px 8px rgba(0,0,0,0.1);}">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:16px;">
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;">{{ case.patient_name }}</div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.9rem;color:var(--text-muted);">
+                  <span>🩺 {{ case.illness_type }}</span>
+                  <span>💰 ₹{{ "{:,}".format(case.estimated_cost) }}</span>
+                  <span>📍 {{ case.hospital_location }}</span>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="display:inline-block;background:{% if case.status == 'funded' %}rgba(var(--success-rgb),0.15){% elif case.status == 'approved_for_funding' %}rgba(var(--accent-rgb),0.15){% elif case.status == 'verified' %}rgba(var(--primary-rgb),0.15){% else %}rgba(0,0,0,0.05){% endif %};color:{% if case.status == 'funded' %}var(--success){% elif case.status == 'approved_for_funding' %}var(--accent){% elif case.status == 'verified' %}var(--primary){% else %}var(--text-muted){% endif %};padding:6px 12px;border-radius:20px;font-size:0.85rem;font-weight:700;">
+                  {% if case.status == 'submitted' %}📤 Submitted{% elif case.status == 'documents_pending' %}📁 Documents Pending{% elif case.status == 'verified' %}✅ Verified{% elif case.status == 'approved_for_funding' %}💼 Approved{% elif case.status == 'funded' %}🎉 Funded{% else %}⭕ {{ case.status }}{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+      <div class="alert alert-info">
+        📭 No cases yet. <a href="{{ url_for('new_case') }}" style="font-weight:700;color:var(--accent);">Create your first case →</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Payments Section -->
+  <div class="card mb-4" style="border:2px solid var(--success);background:rgba(var(--success-rgb),0.02);">
+    <div class="card-header" style="background:rgba(var(--success-rgb),0.1);">
+      <h3 style="font-weight:800;color:var(--success);">💳 Payment Tracking</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Status of all your fund transfers</p>
+    </div>
+    <div class="card-body">
+      {% if payments %}
+        <div style="display:grid;gap:12px;">
+          {% for payment in payments %}
+          <div style="background:var(--bg);padding:14px;border-radius:var(--radius-sm);border-left:4px solid {% if payment.status == 'completed' %}var(--success){% elif payment.status == 'processing' %}var(--primary){% else %}var(--border){% endif %};">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+              <div style="flex:1;">
+                <div style="font-weight:700;margin-bottom:4px;">Payment for Case #{{ payment.case_id[:8] }}</div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.9rem;color:var(--text-muted);">
+                  <span>👤 {{ payment.account_holder }}</span>
+                  <span>🏦 {{ payment.bank_name }}</span>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:700;font-size:1.1rem;color:var(--success);">₹{{ "{:,}".format(payment.total_amount) }}</div>
+                <div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px;">
+                  {% if payment.status == 'completed' %}✅ Released{% elif payment.status == 'processing' %}⏳ Processing{% else %}⭕ Pending{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+              <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Account</div>
+                <div style="font-family:monospace;font-size:0.85rem;">{{ payment.account_number[-4:] }}</div>
+              </div>
+              <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Txn ID</div>
+                <div style="font-family:monospace;font-size:0.85rem;">{{ payment.transaction_id }}</div>
+              </div>
+              <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Released</div>
+                <div style="font-size:0.85rem;">{{ payment.released_at.strftime('%Y-%m-%d') if payment.released_at else '-' }}</div>
+              </div>
+            </div>
+
+            {% if payment.status == 'completed' %}
+            <div class="alert alert-success" style="margin-top:12px;margin-bottom:0;">
+              ✅ Funds have been transferred to your account. Check your bank statements.
+            </div>
+            {% elif payment.status == 'processing' %}
+            <div class="alert alert-info" style="margin-top:12px;margin-bottom:0;">
+              ⏳ Payment is being processed. Expected transfer within 2-3 business days.
+            </div>
+            {% else %}
+            <div class="alert alert-warning" style="margin-top:12px;margin-bottom:0;">
+              ⭕ Payment is pending. Will be processed after final approval.
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+      <div class="alert alert-info">
+        💭 No payments yet. Once your case is approved by a funder, payment will appear here.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;">
+    <button onclick="window.location.href='/new-case'" class="btn btn-accent" style="padding:12px;font-weight:700;">
+      ➕ Create New Case
+    </button>
+    <button onclick="window.location.href='/profile'" class="btn btn-primary" style="padding:12px;font-weight:700;">
+      🏦 Update Bank Details
+    </button>
+    <button onclick="window.location.href='/dashboard'" class="btn btn-outline" style="padding:12px;font-weight:700;">
+      ← Back to Dashboard
+    </button>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh every 60 seconds
+setTimeout(() => {
+  location.reload();
+}, 60000);
+</script>
+{% endblock %}
